@@ -36,6 +36,15 @@ class BookEditor @Autowired constructor
         Book::class.java
     )
     private var book: Book? = null
+    private var changeHandler: ChangeHandler? = null
+
+    fun setChangeHandler(h: ChangeHandler?) {
+        changeHandler = h
+    }
+
+    interface ChangeHandler {
+        fun onChange()
+    }
 
     init {
         add(
@@ -46,6 +55,11 @@ class BookEditor @Autowired constructor
         )
 
         binder.bindInstanceFields(this)
+        isSpacing = true
+
+        save.element.themeList.add("primary")
+        delete.element.themeList.add("error")
+
         addKeyPressListener(Key.ENTER, {
             e: KeyPressEvent? -> save()
         })
@@ -64,12 +78,13 @@ class BookEditor @Autowired constructor
     }
 
     fun save() {
-        println("Saving...")
         bookRepository.save<Book>(book!!)
+        changeHandler!!.onChange()
     }
 
     fun delete() {
-        println("Deleting...")
+        bookRepository.delete(book!!)
+        changeHandler!!.onChange()
     }
 
     fun editBook(book: Book?) {
